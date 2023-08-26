@@ -1,7 +1,6 @@
 package inmemory
 
 import (
-	"fmt"
 	"shortly/repository"
 )
 
@@ -23,7 +22,7 @@ func (db inmemoryDB) FetchURLIdFromURL(url string) (string, error) {
 	var ok bool
 
 	if id, ok = db.urlToID[url]; !ok {
-		return "", fmt.Errorf("url not found")
+		return "", nil
 	}
 
 	return id, nil

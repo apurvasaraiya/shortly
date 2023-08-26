@@ -4,16 +4,20 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"shortly/dto"
+	"shortly/service"
 )
 
 type URLHandler interface {
 	EncodeURL(http.ResponseWriter, *http.Request)
 }
 
-type urlHandler struct{}
+type urlHandler struct {
+	urlService service.URLService
+}
 
-func NewHandler() URLHandler {
-	return urlHandler{}
+func NewHandler(urlService service.URLService) URLHandler {
+	return urlHandler{urlService}
 }
 
 // EncodeURL handles all incoming request to path [POST] /encode/
@@ -26,9 +30,7 @@ func (h urlHandler) EncodeURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		URL string `json:"url"`
-	}
+	var req dto.URLEncodeRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -37,6 +39,19 @@ func (h urlHandler) EncodeURL(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	logger.Println("req>>>", req)
-	w.WriteHeader(http.StatusOK)
+	id, err := h.urlService.EncodeURL(req.URL)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("[error] failed to encode request url %v\n", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	resp := dto.URLEncodeResponse{URL: req.URL, ID: id}
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("[error] failed to encode response body %v\n", err)
+		return
+	}
 }
