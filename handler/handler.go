@@ -10,6 +10,7 @@ import (
 
 type URLHandler interface {
 	EncodeURL(http.ResponseWriter, *http.Request)
+	Redirect(http.ResponseWriter, *http.Request)
 }
 
 type urlHandler struct {
@@ -54,4 +55,31 @@ func (h urlHandler) EncodeURL(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("[error] failed to encode response body %v\n", err)
 		return
 	}
+}
+
+// Redirect handles all incoming request for path [GET] /
+func (h urlHandler) Redirect(w http.ResponseWriter, r *http.Request) {
+	logger := log.Default()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		logger.Printf("[error] invalid request method %s\n", r.Method)
+		return
+	}
+
+	id := r.URL.EscapedPath()[len("/"):]
+	url, err := h.urlService.FetchURLFromID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("[error] failed to fetch url for id %s\n", id)
+		return
+	}
+
+	if url == "" {
+		w.WriteHeader(http.StatusNotFound)
+		logger.Printf("[error] no url found for id %s\n", id)
+		return
+	}
+
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }

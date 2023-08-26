@@ -6,32 +6,30 @@ import (
 
 type inmemoryDB struct {
 	urlToID map[string]string
-	IDToUrl map[string]string
+	idToUrl map[string]string
 }
 
 func NewInMemoryDB() repository.Repository {
 	return inmemoryDB{
 		urlToID: make(map[string]string),
-		IDToUrl: make(map[string]string),
+		idToUrl: make(map[string]string),
 	}
 }
 
-// FetchURLIdFromURL fetches URL id from given url
-func (db inmemoryDB) FetchURLIdFromURL(url string) (string, error) {
-	var id string
-	var ok bool
-
-	if id, ok = db.urlToID[url]; !ok {
-		return "", nil
-	}
-
-	return id, nil
+// FetchIDFromURL fetches ID from given url
+func (db inmemoryDB) FetchIDFromURL(url string) (string, error) {
+	return db.urlToID[url], nil
 }
 
 // SaveURLAndId stores url and id
 func (db inmemoryDB) SaveURLAndId(url string, id string) error {
 	db.urlToID[url] = id
-	db.IDToUrl[id] = url
+	db.idToUrl[id] = url
 
 	return nil
+}
+
+// FetchURLFromID fetches URL for given id
+func (db inmemoryDB) FetchURLFromID(id string) (string, error) {
+	return db.idToUrl[id], nil
 }

@@ -9,6 +9,7 @@ import (
 
 type URLService interface {
 	EncodeURL(url string) (string, error)
+	FetchURLFromID(id string) (string, error)
 }
 
 type urlService struct {
@@ -23,7 +24,7 @@ func NewURLService(repo repository.Repository) URLService {
 func (s urlService) EncodeURL(url string) (string, error) {
 	logger := log.Default()
 
-	id, err := s.repo.FetchURLIdFromURL(url)
+	id, err := s.repo.FetchIDFromURL(url)
 	if err != nil {
 		logger.Printf("[error] failed to fetch existing id from url %s %v\n", url, err)
 		return "", err
@@ -42,4 +43,17 @@ func (s urlService) EncodeURL(url string) (string, error) {
 	}
 
 	return id, nil
+}
+
+// FetchURLFromID fetches URL based on given id
+func (s urlService) FetchURLFromID(id string) (string, error) {
+	logger := log.Default()
+
+	url, err := s.repo.FetchURLFromID(id)
+	if err != nil {
+		logger.Printf("[error] failed to fetch existing id %s with url %s %v", id, url, err)
+		return "", err
+	}
+
+	return url, nil
 }
