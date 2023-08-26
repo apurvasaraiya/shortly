@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"shortly/dto"
 	"shortly/helper"
 	"shortly/service"
@@ -41,6 +42,14 @@ func (h urlHandler) EncodeURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
+
+	_, err = url.ParseRequestURI(req.URL)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		helper.WriteError(w, "invalid url %s", req.URL)
+		logger.Printf("%v\n", err)
+		return
+	}
 
 	id, err := h.urlService.EncodeURL(req.URL)
 	if err != nil {
