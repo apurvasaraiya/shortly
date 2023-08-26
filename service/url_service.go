@@ -4,12 +4,16 @@ import (
 	"log"
 	"shortly/repository"
 
+	urlpkg "net/url"
+
 	"github.com/google/uuid"
 )
 
 type URLService interface {
 	EncodeURL(url string) (string, error)
 	FetchURLFromID(id string) (string, error)
+	IncrementVisitCountForHostname(url string) error
+	Metrics() (map[string]uint, error)
 }
 
 type urlService struct {
@@ -56,4 +60,18 @@ func (s urlService) FetchURLFromID(id string) (string, error) {
 	}
 
 	return url, nil
+}
+
+// IncrementVisitCountForHostname increments hostname visit by 1.
+func (s urlService) IncrementVisitCountForHostname(url string) error {
+	urlStruct, err := urlpkg.Parse(url)
+	if err != nil {
+		return err
+	}
+	return s.repo.IncrementCountForHostname(urlStruct.Hostname())
+}
+
+// Metrics fetches top 3 metrics by domain visit
+func (s urlService) Metrics() (map[string]uint, error) {
+	return s.repo.FetchMetrics(3)
 }

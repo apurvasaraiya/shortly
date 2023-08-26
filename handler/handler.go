@@ -12,6 +12,7 @@ import (
 type URLHandler interface {
 	EncodeURL(http.ResponseWriter, *http.Request)
 	Redirect(http.ResponseWriter, *http.Request)
+	Metrics(http.ResponseWriter, *http.Request)
 }
 
 type urlHandler struct {
@@ -82,5 +83,34 @@ func (h urlHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//ignoring error as updating metrics should not affect redirect flow
+	h.urlService.IncrementVisitCountForHostname(url)
+
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
+}
+
+// Metrics handles all incoming request for path [GET] /metrics
+func (h urlHandler) Metrics(w http.ResponseWriter, r *http.Request) {
+	logger := log.Default()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		logger.Printf("[error] invalid request method %s\n", r.Method)
+		return
+	}
+
+	metrics, err := h.urlService.Metrics()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("[error] failed to fetch metrics %v\n", err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(metrics)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logger.Printf("[error] failed to encode metrics to json %v\n", err)
+		return
+	}
+
 }

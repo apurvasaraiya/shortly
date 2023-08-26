@@ -13,6 +13,8 @@ func main() {
 	s := service.NewURLService(repo)
 	h := handler.NewHandler(s)
 	http.HandleFunc("/encode/", h.EncodeURL)
+	http.HandleFunc("/metrics", h.Metrics)
 	http.HandleFunc("/", h.Redirect)
+
 	log.Fatal(http.ListenAndServe(":8080", http.DefaultServeMux))
 }

@@ -1,18 +1,21 @@
 package inmemory
 
 import (
+	"shortly/helper"
 	"shortly/repository"
 )
 
 type inmemoryDB struct {
-	urlToID map[string]string
-	idToUrl map[string]string
+	urlToID          map[string]string
+	idToUrl          map[string]string
+	domainVisitCount map[string]uint
 }
 
 func NewInMemoryDB() repository.Repository {
 	return inmemoryDB{
-		urlToID: make(map[string]string),
-		idToUrl: make(map[string]string),
+		urlToID:          make(map[string]string),
+		idToUrl:          make(map[string]string),
+		domainVisitCount: make(map[string]uint),
 	}
 }
 
@@ -32,4 +35,15 @@ func (db inmemoryDB) SaveURLAndId(url string, id string) error {
 // FetchURLFromID fetches URL for given id
 func (db inmemoryDB) FetchURLFromID(id string) (string, error) {
 	return db.idToUrl[id], nil
+}
+
+// IncrementCountForHostname increments visit count for given url
+func (db inmemoryDB) IncrementCountForHostname(url string) error {
+	db.domainVisitCount[url] = db.domainVisitCount[url] + 1
+	return nil
+}
+
+// FetchMetrics fetches metrics for all urls
+func (db inmemoryDB) FetchMetrics(topN int) (map[string]uint, error) {
+	return helper.SortTopNInMap(db.domainVisitCount, 3), nil
 }
