@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"shortly/dto"
+	"shortly/helper"
 	"shortly/service"
 )
 
@@ -77,7 +78,7 @@ func (h urlHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 
 	if url == "" {
 		w.WriteHeader(http.StatusNotFound)
-		logger.Printf("[error] no url found for id %s\n", id)
+		helper.WriteError(w, "url not found for id %s", id)
 		return
 	}
 
