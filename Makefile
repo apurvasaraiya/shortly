@@ -1,5 +1,8 @@
 all: run
 
+build_race:
+	go build -race -o ./bin/shortly .
+
 build:
 	go build -o ./bin/shortly .
 
