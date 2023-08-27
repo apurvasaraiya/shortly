@@ -9,6 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	GenerateNewUUIDStringFunc = func() string {
+		return uuid.NewString()
+	}
+)
+
 type URLService interface {
 	EncodeURL(url string) (string, error)
 	FetchURLFromID(id string) (string, error)
@@ -38,7 +44,7 @@ func (s urlService) EncodeURL(url string) (string, error) {
 		return id, nil
 	}
 
-	id = uuid.NewString()
+	id = GenerateNewUUIDStringFunc()
 
 	err = s.repo.SaveURLAndId(url, id)
 	if err != nil {
@@ -64,7 +70,7 @@ func (s urlService) FetchURLFromID(id string) (string, error) {
 
 // IncrementVisitCountForHostname increments hostname visit by 1.
 func (s urlService) IncrementVisitCountForHostname(url string) error {
-	urlStruct, err := urlpkg.Parse(url)
+	urlStruct, err := urlpkg.ParseRequestURI(url)
 	if err != nil {
 		return err
 	}
